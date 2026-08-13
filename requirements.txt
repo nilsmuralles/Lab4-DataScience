@@ -1,0 +1,10 @@
+openeo
+sentinelhub
+rasterio
+numpy
+pandas
+matplotlib
+geopandas
+folium
+python-dotenv
+scipy
