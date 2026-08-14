@@ -27,4 +27,4 @@ LAGOS = {
     },
 }
 
-BANDS_NDVI_NDWI = ["B03", "B04", "B08"]
+BANDS = ["B03", "B04", "B05", "B08"]

@@ -1,5 +1,5 @@
 from pathlib import Path
-from src.config import BANDS_NDVI_NDWI, LAGOS
+from src.config import BANDS, LAGOS
 
 DATA_RAW = Path(__file__).resolve().parent.parent / "data" / "raw"
 
@@ -15,7 +15,7 @@ def download_scene(connection, lago: str, fecha: str) -> Path:
         "SENTINEL2_L2A",
         spatial_extent=LAGOS[lago]["bbox"],
         temporal_extent=[fecha, fecha],
-        bands=BANDS_NDVI_NDWI,
+        bands=BANDS,
     )
     cube.download(out_path, format="GTiff")
     return out_path

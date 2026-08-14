@@ -6,11 +6,11 @@ from src.download import DATA_RAW
 
 DATA_PROCESSED = DATA_RAW.parent / "processed"
 
-def _read_bands(tif_path: Path) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+def _read_bands(tif_path: Path) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     with rasterio.open(tif_path) as src:
         raw = src.read(masked=True).astype(np.float32)
-    green, red, nir = np.ma.filled(raw, np.nan) / 10000
-    return green, red, nir
+    green, red, red_edge, nir = np.ma.filled(raw, np.nan) / 10000
+    return green, red, red_edge, nir
 
 def _normalized_difference(a: np.ndarray, b: np.ndarray) -> np.ndarray:
     denom = a + b
@@ -25,10 +25,21 @@ def ndvi(red: np.ndarray, nir: np.ndarray) -> np.ndarray:
 def ndwi(green: np.ndarray, nir: np.ndarray) -> np.ndarray:
     return _normalized_difference(green, nir)
 
+def ndci(red: np.ndarray, red_edge: np.ndarray) -> np.ndarray:
+    return _normalized_difference(red_edge, red)
+
+def cianobacteria(red: np.ndarray, red_edge: np.ndarray) -> np.ndarray:
+    ndci_v = ndci(red, red_edge)
+    return 826.57 * ndci_v**3 - 176.43 * ndci_v**2 + 19 * ndci_v + 4.071
+
 def compute_indices(lago: str, fecha: str) -> dict[str, np.ndarray]:
     tif_path = DATA_RAW / lago / f"{fecha}.tif"
-    green, red, nir = _read_bands(tif_path)
-    return {"ndvi": ndvi(red, nir), "ndwi": ndwi(green, nir)}
+    green, red, red_edge, nir = _read_bands(tif_path)
+    return {
+        "ndvi": ndvi(red, nir),
+        "ndwi": ndwi(green, nir),
+        "cianobacteria": cianobacteria(red, red_edge),
+    }
 
 def save_index(lago: str, fecha: str, nombre_indice: str, array: np.ndarray, profile: dict) -> Path:
     out_dir = DATA_PROCESSED / lago
